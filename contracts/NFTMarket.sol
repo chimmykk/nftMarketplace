@@ -41,6 +41,11 @@ contract NFTMarket is ReentrancyGuard {
         uint256 price
     );
 
+
+    function getListingPrice() public view returns (uint256) {
+        return listingPrice;
+    }
+
     // create item
     function createMarketItem(
         address nftContract,
@@ -64,7 +69,8 @@ contract NFTMarket is ReentrancyGuard {
             payable(msg.sender),
             // no buyers yet
             payable(address(0)),
-            price
+            price,
+            false
         );
 
         // transfer NFT from owner to buyer
@@ -77,7 +83,36 @@ contract NFTMarket is ReentrancyGuard {
             tokenId,
             msg.sender, 
             address(0),
-            price
+            price,
+            false
         );
     }
+
+    // put the item up for sale
+    function createMarketSale(
+        address nftContract,
+        uint256 itemId
+    ) public payable nonReentrant {
+        uint price = idToMarketItem[itemId].price;
+        uint tokenId = idToMarketItem[itemId].tokenId;
+
+        require(msg.value == price, "Please input the asking price: ");
+
+        // transfer the value sent into this transaction (NFT) to the seller
+        idToMarketItem[itemId].seller.transfer(msg.value);
+
+        // transfer NFT from the buyer to the seller
+        IERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
+
+        // the owner being the one who gets paid
+        idToMarketItem[itemId].owner = payable(msg.sender);
+        idToMarketItem[itemId].sold = true;
+
+        // number of items sold goes up by 1
+        _itemSold.increment();
+
+        // when item is sold, transfer listing price to the marketplace owner as commission
+        payable(owner).transfer(listingPrice);
+    }
+
 }
