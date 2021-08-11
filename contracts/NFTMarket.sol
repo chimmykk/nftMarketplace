@@ -144,4 +144,37 @@ contract NFTMarket is ReentrancyGuard {
         }
         return items;
     }
+
+    // fetch items owned by the user
+    function fetchMyNFTs() public view returns (MarketItem[] memory) {
+        uint totalItemCount = _itemIds.current();
+        uint itemCount = 0;
+        uint currentIndex = 0;
+
+        for (uint i = 0; i < totalItemCount; i++) {
+            // if the user is owner of the item
+            if (idToMarketItem[i + 1].owner == msg.sender) {
+                // increment item count by one
+                itemCount += 1;
+            }
+        } 
+
+        // initiate an array of owned items
+        MarketItem[] memory items = new MarketItem[](itemCount);
+        
+        for (uint i = 0; i < totalItemCount; i++) {
+            // if user owns the asset
+            if (idToMarketItem[i + 1].owner == msg.sender) {
+                uint currentId = idToMarketItem[i + 1].itemId;
+                // add item to array
+                MarketItem storage currentItem = idToMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }    
+        }
+
+        return items;
+    }
+
+    
 }
