@@ -38,7 +38,8 @@ contract NFTMarket is ReentrancyGuard {
         uint indexed tokenId,
         address seller,
         address owner,
-        uint256 price
+        uint256 price,
+        bool sold
     );
 
 
@@ -109,7 +110,7 @@ contract NFTMarket is ReentrancyGuard {
         idToMarketItem[itemId].sold = true;
 
         // number of items sold goes up by 1
-        _itemSold.increment();
+        _itemsSold.increment();
 
         // when item is sold, transfer listing price to the marketplace owner as commission
         payable(owner).transfer(listingPrice);
@@ -121,7 +122,7 @@ contract NFTMarket is ReentrancyGuard {
         uint itemCount = _itemIds.current();
 
         /// items still unsold
-        uint unsoldItemCount = _itemIds.current() - _itemSold.current();
+        uint unsoldItemCount = _itemIds.current() - _itemsSold.current();
         
         // to iterate over the items array
         uint currentIndex = 0;
